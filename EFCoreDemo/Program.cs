@@ -12,7 +12,7 @@ UserClaim c1 = new UserClaim ()
 UserClaim c2 = new UserClaim ()
 {
 	Id = 2,
-	Name = "MOderator"
+	Name = "Moderator"
 };
 
 rc.UserClaims.Add (c1);
@@ -37,13 +37,7 @@ User u2 = new User ()
 rc.Users.Add (u1);
 rc.Users.Add (u2);
 
-try
-{
-	await rc.SaveChangesAsync ();
-}
-catch
-{
-}
+await rc.SaveChangesAsync ();
 
 List<User> users = await rc.Users.ToListAsync ();
 
@@ -55,7 +49,7 @@ List<long> ids = new () {1, 2};
 IQueryable<User> query = rc.Users.Where (u => u.Claims.All (c => ids.Contains (c.Id)));
 string sql = query.ToQueryString ();
 
-Console.WriteLine ($"Executing query:");
+Console.WriteLine ($"Searching for users who are both {c1.Name}({c1.Id}) and {c2.Name}({c2.Id}) with the following query:");
 Console.WriteLine ($"{sql}");
 Console.WriteLine ("--------------------------");
 
@@ -70,13 +64,7 @@ rc.Users.Remove (u2);
 rc.UserClaims.Remove (c1);
 rc.UserClaims.Remove (c2);
 
-try
-{
-	await rc.SaveChangesAsync ();
-}
-catch
-{
-}
+await rc.SaveChangesAsync ();
 
 void PrintUsers (List<User> users)
 {

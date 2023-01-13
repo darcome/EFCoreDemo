@@ -3,11 +3,88 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Linq.Expressions;
 
 RepositoryContext rc = new ();
+UserClaim c1 = new UserClaim ()
+{
+	Id = 1,
+	Name = "Administrator"
+};
+
+UserClaim c2 = new UserClaim ()
+{
+	Id = 2,
+	Name = "MOderator"
+};
+
+rc.UserClaims.Add (c1);
+rc.UserClaims.Add (c2);
+
+User u1 = new User ()
+{
+	Id = 1,
+	Email = "aaa@aaa.com",
+	Username = "aaa",
+	Claims = new List<UserClaim> { c1 }
+};
+
+User u2 = new User ()
+{
+	Id = 2,
+	Email = "bbb@bbb.com",
+	Username = "bbb",
+	Claims = new List<UserClaim> { c1 }
+};
+
+rc.Users.Add (u1);
+rc.Users.Add (u2);
+
+try
+{
+	await rc.SaveChangesAsync ();
+}
+catch
+{
+}
+
+List<User> users = await rc.Users.ToListAsync ();
+
+Console.WriteLine ("All users:");
+PrintUsers (users);
+Console.WriteLine ("--------------------------");
+
 List<long> ids = new () {1, 2};
 IQueryable<User> query = rc.Users.Where (u => u.Claims.All (c => ids.Contains (c.Id)));
-string str = query.ToQueryString ();
+string sql = query.ToQueryString ();
 
-Console.WriteLine ("Hello, World!");
+Console.WriteLine ($"Executing query:");
+Console.WriteLine ($"{sql}");
+Console.WriteLine ("--------------------------");
+
+users = await query.ToListAsync ();
+Console.WriteLine ("Results:");
+PrintUsers (users);
+Console.WriteLine ("--------------------------");
+
+rc.Users.Remove (u1);
+rc.Users.Remove (u2);
+
+rc.UserClaims.Remove (c1);
+rc.UserClaims.Remove (c2);
+
+try
+{
+	await rc.SaveChangesAsync ();
+}
+catch
+{
+}
+
+void PrintUsers (List<User> users)
+{
+	foreach (User u in users)
+	{
+		Console.WriteLine ($"{u.Id} {u.Username} {string.Join (", ", u.Claims.Select (x => x.Name).ToList ())}");
+	}
+}
 
 public class BaseEntity
 {
@@ -74,8 +151,8 @@ public sealed class RepositoryContext : DbContext
 #region Methods
 	protected override void OnConfiguring(DbContextOptionsBuilder builder)
     { 
-        builder.UseMySql ("Server=192.168.230.3;Port=3306;Database=efcoredemo;User=root;Password=root;DateTimeKind=Utc", 
-						ServerVersion.AutoDetect ("Server=192.168.230.3;Port=3306;Database=efcoredemo;User=root;Password=root;DateTimeKind=Utc"), 
+        builder.UseMySql ("Server=192.168.230.3;Port=3306;Database=agilista.it;User=root;Password=root;DateTimeKind=Utc", 
+						ServerVersion.AutoDetect ("Server=192.168.230.3;Port=3306;Database=agilista.it;User=root;Password=root;DateTimeKind=Utc"), 
 						b => b.UseMicrosoftJson ().EnableRetryOnFailure ());
     }
 	protected	override	void		OnModelCreating			(ModelBuilder modelBuilder)
